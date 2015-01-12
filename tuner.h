@@ -18,36 +18,55 @@
 #include "server.h"
 #include "statistics.h"
 
+
+#if APIVERSNUM >= 20107
+#define SATIP_ENHANCED_VECTOR
+#endif
+
 class cSatipPid : public cVector<int> {
 private:
   int PidIndex(const int &pidP)
   {
+#ifdef SATIP_ENHANCED_VECTOR
+    return indexOf(pidP);
+#else
     for (int i = 0; i < Size(); ++i) {
         if (pidP == At(i))
            return i;
         }
     return -1;
+#endif
   }
+#ifndef SATIP_ENHANCED_VECTOR
   static int PidCompare(const void *aPidP, const void *bPidP)
   {
     return (*(int*)aPidP - *(int*)bPidP);
   }
+#endif
 
 public:
   void RemovePid(const int &pidP)
   {
+#ifdef SATIP_ENHANCED_VECTOR
+    RemoveElement(pidP);
+#else
     int i = PidIndex(pidP);
     if (i >= 0) {
        Remove(i);
        Sort(PidCompare);
        }
+#endif
   }
   void AddPid(int pidP)
   {
+#ifdef SATIP_ENHANCED_VECTOR
+     return AppendUnique(pidP);
+#else
     if (PidIndex(pidP) < 0) {
        Append(pidP);
        Sort(PidCompare);
        }
+#endif
   }
   cString ListPids(void)
   {
